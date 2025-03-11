@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Input } from "./ui/Input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "./ui/Table";
 import { Button } from "./ui/Button";
@@ -10,7 +10,6 @@ const PAGE_SIZE = 5;
 export default function UserTable() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const debouncedSearch = useDebounce(searchTerm, 300);
 
@@ -18,17 +17,12 @@ export default function UserTable() {
     fetchUsers().then(setUsers);
   }, []);
 
-  useEffect(() => {
-    if (debouncedSearch) {
-      setFilteredUsers(
-        users.filter((user) =>
+  const filteredUsers = useMemo(() => {
+    return debouncedSearch
+      ? users.filter((user) =>
           `${user.name.first} ${user.name.last}`.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
-      );
-    } else {
-      setFilteredUsers(users);
-    }
-    setCurrentPage(1);
+      : users;
   }, [debouncedSearch, users]);
 
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
